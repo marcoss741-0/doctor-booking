@@ -65,8 +65,6 @@ const SigninForm = () => {
           if (ctx.error.statusText === "UNAUTHORIZED") {
             toast.error("Ooops, Email ou senha incorretos!");
           }
-
-          console.log(ctx);
         },
       },
     );

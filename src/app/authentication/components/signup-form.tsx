@@ -62,9 +62,13 @@ const SignupForm = () => {
             toast.success("Usuario cadastrado com êxito!");
             router.push("/dashboard");
           },
-          onError: () => {
+          onError: (ctx) => {
             setIsLoading(false);
-            toast.error("Erro ao cadastrar usuario!");
+            if (ctx.error.code === "USER_ALREADY_EXISTS") {
+              toast.warning("Usuario ja existe para o email informado!");
+            } else {
+              toast.error("Erro ao cadastrar usuario!");
+            }
           },
         },
       );
