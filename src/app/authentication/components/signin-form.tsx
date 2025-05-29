@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, LoaderIcon } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -35,6 +35,7 @@ const loginSchema = z.object({
 const SigninForm = () => {
   type LOGINSCHEMA = z.infer<typeof loginSchema>;
   const [isLoading, setIsLoading] = useState(false);
+  const [signinGoogleLoading, setSigninGoogleLoading] = useState(false);
   const router = useRouter();
   const form = useForm<LOGINSCHEMA>({
     resolver: zodResolver(loginSchema),
@@ -65,6 +66,24 @@ const SigninForm = () => {
           if (ctx.error.statusText === "UNAUTHORIZED") {
             toast.error("Ooops, Email ou senha incorretos!");
           }
+        },
+      },
+    );
+  }
+
+  async function signinGoogle() {
+    await authClient.signIn.social(
+      {
+        provider: "google",
+        callbackURL: "/dashboard",
+      },
+      {
+        onRequest: () => {
+          setSigninGoogleLoading(true);
+        },
+        onSuccess: () => {
+          setSigninGoogleLoading(false);
+          router.push("/dashboard");
         },
       },
     );
@@ -127,14 +146,19 @@ const SigninForm = () => {
             type="button"
             variant="outline"
             className="w-full cursor-pointer items-center gap-2"
-            disabled={isLoading}
+            disabled={signinGoogleLoading}
+            onClick={signinGoogle}
           >
-            <Image
-              src="/google.svg"
-              alt="Login with google"
-              width={20}
-              height={20}
-            />
+            {signinGoogleLoading ? (
+              <LoaderIcon className="animate-spin" />
+            ) : (
+              <Image
+                src="/google.svg"
+                alt="Login with google"
+                width={20}
+                height={20}
+              />
+            )}
             Login com google
           </Button>
         </CardContent>
