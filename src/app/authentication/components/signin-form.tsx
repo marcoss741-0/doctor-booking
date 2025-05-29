@@ -17,9 +17,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { LoaderCircle } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const loginSchema = z.object({
@@ -29,6 +34,8 @@ const loginSchema = z.object({
 
 const SigninForm = () => {
   type LOGINSCHEMA = z.infer<typeof loginSchema>;
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const form = useForm<LOGINSCHEMA>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -36,8 +43,33 @@ const SigninForm = () => {
       password: "",
     },
   });
-  function onSubmit(data: LOGINSCHEMA) {
-    console.log(data);
+
+  async function onSubmit(data: LOGINSCHEMA) {
+    await authClient.signIn.email(
+      {
+        email: data.email,
+        password: data.password,
+      },
+      {
+        onRequest: () => {
+          setIsLoading(true);
+        },
+        onSuccess: () => {
+          setIsLoading(false);
+          toast.success("Login realizado!");
+          router.push("/dashboard");
+        },
+        onError: (ctx) => {
+          setIsLoading(false);
+
+          if (ctx.error.statusText === "UNAUTHORIZED") {
+            toast.error("Ooops, Email ou senha incorretos!");
+          }
+
+          console.log(ctx);
+        },
+      },
+    );
   }
   return (
     <>
@@ -85,8 +117,10 @@ const SigninForm = () => {
               <Button
                 type="submit"
                 variant="default"
-                className="w-full cursor-pointer rounded-lg"
+                className="w-full cursor-pointer gap-2 rounded-lg"
+                disabled={isLoading}
               >
+                {isLoading && <LoaderCircle className="animate-spin" />}
                 Fazer login
               </Button>
             </form>
@@ -95,6 +129,7 @@ const SigninForm = () => {
             type="button"
             variant="outline"
             className="w-full cursor-pointer items-center gap-2"
+            disabled={isLoading}
           >
             <Image
               src="/google.svg"
