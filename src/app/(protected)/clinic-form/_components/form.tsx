@@ -7,16 +7,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from "@/_components/ui/form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Input } from "@/components/ui/input";
-import { DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/_components/ui/input";
+import { DialogFooter } from "@/_components/ui/dialog";
+import { Button } from "@/_components/ui/button";
 import { Loader, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
-import { createClinic } from "@/create-clinic";
+import { createClinic } from "@/actions/create-clinic";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 const clinicSchema = z.object({

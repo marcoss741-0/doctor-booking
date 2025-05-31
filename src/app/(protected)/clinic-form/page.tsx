@@ -4,8 +4,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import FormClicnic from "./components/form";
+} from "@/_components/ui/dialog";
+import FormClicnic from "./_components/form";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -18,6 +18,7 @@ const ClinicFormPage = async () => {
   if (!session?.user) {
     redirect("/authentication");
   }
+
   return (
     <>
       <Dialog open>
