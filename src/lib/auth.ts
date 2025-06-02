@@ -2,6 +2,9 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import * as schema from "@/db/schema";
 import { db } from "@/db";
+import { usersToClinicsTable } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { customSession } from "better-auth/plugins";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -9,6 +12,29 @@ export const auth = betterAuth({
     usePlural: true,
     schema,
   }),
+  plugins: [
+    customSession(async ({ user, session }) => {
+      const clinics = await db.query.usersToClinicsTable.findMany({
+        where: eq(usersToClinicsTable.userId, user.id),
+        with: {
+          clinic: true,
+        },
+      });
+      const clinic = clinics?.[0];
+      return {
+        user: {
+          ...user,
+          clinic: clinic?.clinicId
+            ? {
+                id: clinic?.clinicId,
+                name: clinic?.clinic?.name,
+              }
+            : undefined,
+        },
+        session,
+      };
+    }),
+  ],
   user: {
     modelName: "usersTable",
   },

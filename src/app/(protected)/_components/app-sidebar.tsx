@@ -30,6 +30,7 @@ import {
 } from "@/_components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback } from "@/_components/ui/avatar";
 
 const items = [
   {
@@ -99,18 +100,21 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton>
-                  <div className="flex cursor-pointer gap-4 rounded-md border p-4">
-                    {/* <Avatar className="h-8 w-8 rounded-lg grayscale">
-                    <AvatarImage
-                      src={session?.user.image || "icons8-user-48.png"}
-                      alt={session?.user.name}
-                    />
-                    <AvatarFallback className="rounded-lg">FA</AvatarFallback>
-                  </Avatar> */}
-                    <div className="grid flex-1 items-center text-left text-sm leading-tight">
-                      <span className="truncate font-medium"></span>
-                    </div>
+                <SidebarMenuButton size="lg">
+                  <Avatar>
+                    <AvatarFallback>
+                      {session.data?.user.clinic?.name
+                        ?.slice(0, 2)
+                        .toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm">
+                      {session.data?.user?.clinic?.name}
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      {session.data?.user.email}
+                    </p>
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
