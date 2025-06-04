@@ -4,6 +4,7 @@ import {
   CalendarDays,
   LayoutDashboard,
   LogOutIcon,
+  MoreVerticalIcon,
   Stethoscope,
   Users2Icon,
 } from "lucide-react";
@@ -29,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/_components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/_components/ui/avatar";
 
 const items = [
@@ -58,6 +59,7 @@ const items = [
 export function AppSidebar() {
   const session = authClient.useSession();
   const router = useRouter();
+  const pathName = usePathname();
   async function handleLogout() {
     await authClient.signOut({
       fetchOptions: {
@@ -70,7 +72,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarContent>
+      <SidebarContent className="p-4">
         <SidebarHeader className="border-b p-4">
           <Image src="/logo.svg" alt="logo" width={136} height={32} />
         </SidebarHeader>
@@ -79,11 +81,11 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
-                <SidebarMenuItem key={item.title} className="space-y-2">
-                  <SidebarMenuButton asChild>
+                <SidebarMenuItem key={item.title} className="gap-2 space-y-2">
+                  <SidebarMenuButton asChild isActive={pathName === item.url}>
                     <Link
                       href={item.url}
-                      className="flex items-center gap-2 text-[16px]"
+                      className={`flex items-center gap-2 text-[16px]`}
                     >
                       <item.icon />
                       <span>{item.title}</span>
@@ -100,7 +102,10 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton size="lg">
+                <SidebarMenuButton
+                  size="lg"
+                  className="flex cursor-pointer items-center"
+                >
                   <Avatar>
                     <AvatarFallback>
                       {session.data?.user.clinic?.name
@@ -116,6 +121,7 @@ export function AppSidebar() {
                       {session.data?.user.email}
                     </p>
                   </div>
+                  <MoreVerticalIcon />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
