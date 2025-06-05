@@ -1,3 +1,12 @@
+/* eslint-disable react/no-unescaped-entities */
+import {
+  PageContainer,
+  PageContent,
+  PageDescription,
+  PageHeader,
+  PageHeaderContent,
+  PageTitle,
+} from "@/_components/page-container";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -16,13 +25,22 @@ const DashboardPage = async () => {
   }
 
   return (
-    <>
-      <div className="p-5">
-        <h1>Dashboard</h1>
-        <p>{session?.user.name}</p>
-        <p>{session?.user.email}</p>
-      </div>
-    </>
+    <PageContainer>
+      <PageHeader>
+        <PageHeaderContent>
+          <PageTitle>Dashboard</PageTitle>
+          <PageDescription>
+            {session.user.email} - {session.user.name}
+          </PageDescription>
+        </PageHeaderContent>
+      </PageHeader>
+      <PageContent>
+        <p>
+          Welcome to the dashboard! Here you can find an overview of your
+          clinic's performance and patient data.
+        </p>
+      </PageContent>
+    </PageContainer>
   );
 };
 
