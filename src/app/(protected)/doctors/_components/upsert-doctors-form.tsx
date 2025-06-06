@@ -30,23 +30,49 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { DoctorSpecialties } from "../_constants";
 import { NumericFormat } from "react-number-format";
+import { useAction } from "next-safe-action/hooks";
+import { toast } from "sonner";
+import { upsertDoctor } from "@/_actions/upsert-doctors";
+import { Loader, PlusIcon } from "lucide-react";
 
-const formSchema = z.object({
-  name: z.string().trim().min(1, "Nome é obrigatório"),
-  specialty: z.string().trim().min(1, "Especialidade é obrigatória"),
-  availableFromWeekDays: z.number(),
-  availableToWeekDays: z.number(),
-  availableFromTime: z
-    .string()
-    .trim()
-    .min(1, "Horário de início é obrigatório"),
-  availableToTime: z.string().trim().min(1, "Horário de término é obrigatório"),
-  appointmentPrice: z.number().min(1, "Preço da consulta é obrigatório"),
-});
+const formSchema = z
+  .object({
+    name: z.string().trim().min(1, { message: "Nome é obrigatório" }),
+
+    specialty: z
+      .string()
+      .trim()
+      .min(1, { message: "Especialidade é obrigatória" }),
+
+    availableFromWeekDays: z.coerce.number().min(0).max(6),
+
+    availableToWeekDays: z.coerce.number().min(0).max(6),
+
+    availableFromTime: z
+      .string()
+      .min(1, { message: "Horário de início é obrigatório" }),
+
+    availableToTime: z
+      .string()
+      .min(1, { message: "Horário de término é obrigatório" }),
+
+    appointmentPrice: z
+      .number()
+      .min(1, { message: "Preço da consulta é obrigatório" })
+      .positive("Preço deve ser um valor positivo"),
+  })
+  .refine((data) => data.availableFromTime < data.availableToTime, {
+    message: "O horário de início não pode ser anterior ao horário de término.",
+    path: ["availableToTime"],
+  });
+
+interface upsertDoctorFormProps {
+  onSuccess?: () => void;
+}
 
 type FormSchema = z.infer<typeof formSchema>;
 
-const UpsertDoctorsDialog = () => {
+const UpsertDoctorsDialog = ({ onSuccess }: upsertDoctorFormProps) => {
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,7 +86,25 @@ const UpsertDoctorsDialog = () => {
     },
   });
 
+  const upsertDoctorAction = useAction(upsertDoctor, {
+    onSuccess: () => {
+      form.reset();
+      toast.success("Médico registrado com sucesso!");
+      onSuccess?.();
+    },
+    onError: (error) => {
+      console.error("Error registering doctor:", error);
+      toast.error("Erro ao registrar médico. Tente novamente.");
+    },
+  });
+
   async function onSubmit(data: FormSchema) {
+    upsertDoctorAction.execute({
+      ...data,
+      availableFromWeekDays: data.availableFromWeekDays.toString(),
+      availableToWeekDays: data.availableToWeekDays.toString(),
+      appointmentPriceInCents: data.appointmentPrice * 100,
+    });
     console.log("Form submitted with data:", data);
   }
   return (
@@ -359,8 +403,13 @@ const UpsertDoctorsDialog = () => {
             <Button
               type="submit"
               variant="default"
-              className="cursor- w-full rounded-lg"
+              className="cursor- w-full gap-2 rounded-lg"
             >
+              {upsertDoctorAction.isPending ? (
+                <Loader className="animate-spin" />
+              ) : (
+                <PlusIcon />
+              )}
               Registrar Médico
             </Button>
           </DialogFooter>
