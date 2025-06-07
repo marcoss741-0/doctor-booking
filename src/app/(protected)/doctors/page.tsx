@@ -11,6 +11,10 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import AddDoctorsButton from "./_components/add-doctors-button";
+import { db } from "@/db";
+import { eq } from "drizzle-orm";
+import { doctorsTable } from "@/db/schema";
+import DoctorCard from "./_components/doctor-card";
 
 const DoctorsPage = async () => {
   const session = await auth.api.getSession({
@@ -23,6 +27,11 @@ const DoctorsPage = async () => {
   if (!session.user.clinic) {
     redirect("/clinic-form");
   }
+
+  const doctors = await db.query.doctorsTable.findMany({
+    where: eq(doctorsTable.clinicId, session.user.clinic.id),
+  });
+
   return (
     <>
       <PageContainer>
@@ -39,7 +48,12 @@ const DoctorsPage = async () => {
         </PageHeader>
         <PageContent>
           {/* Content goes here */}
-          <p>List of doctors will be displayed here.</p>
+          {doctors.length === 0 && <p>No doctors found for this clinic.</p>}
+          <div className="grid grid-cols-3 gap-6">
+            {doctors.map((doctor) => (
+              <DoctorCard key={doctor.id} doctor={doctor} />
+            ))}
+          </div>
         </PageContent>
       </PageContainer>
     </>

@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { db } from "@/db";
 import { doctorsTable } from "@/db/schema";
 import { actionClient } from "@/lib/safe-action";
+import { revalidatePath } from "next/cache";
 
 export const upsertDoctor = actionClient
   .schema(upsertDoctorsSchema)
@@ -38,4 +39,6 @@ export const upsertDoctor = actionClient
         target: [doctorsTable.id],
         set: doctorData,
       });
+
+    revalidatePath("/doctors");
   });
