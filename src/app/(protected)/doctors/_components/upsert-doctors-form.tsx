@@ -33,8 +33,25 @@ import { NumericFormat } from "react-number-format";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { upsertDoctor } from "@/_actions/upsert-doctors";
-import { CircleFadingArrowUp, Loader, PlusIcon } from "lucide-react";
+import {
+  CircleFadingArrowUp,
+  Loader,
+  PlusIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { doctorsTable } from "@/db/schema";
+import { deleteDoctor } from "@/_actions/delete-doctors";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/_components/ui/alert-dialog";
 
 const formSchema = z
   .object({
@@ -101,6 +118,18 @@ const UpsertDoctorsDialog = ({ onSuccess, doctors }: upsertDoctorFormProps) => {
     },
   });
 
+  const deleteDoctorAction = useAction(deleteDoctor, {
+    onSuccess: () => {
+      form.reset();
+      toast.success("Médico deletado com sucesso!");
+      onSuccess?.();
+    },
+    onError: (error) => {
+      console.error("Error deleting doctor:", error);
+      toast.error("Erro ao deletar médico. Tente novamente.");
+    },
+  });
+
   async function onSubmit(data: FormSchema) {
     upsertDoctorAction.execute({
       ...data,
@@ -109,8 +138,11 @@ const UpsertDoctorsDialog = ({ onSuccess, doctors }: upsertDoctorFormProps) => {
       availableToWeekDays: data.availableToWeekDays.toString(),
       appointmentPriceInCents: data.appointmentPrice * 100,
     });
-    console.log("Form submitted with data:", data);
   }
+
+  const handleDeleteDoctor = async (doctorId: string) => {
+    deleteDoctorAction.execute({ id: doctorId });
+  };
   return (
     <>
       <DialogHeader>
@@ -406,32 +438,74 @@ const UpsertDoctorsDialog = ({ onSuccess, doctors }: upsertDoctorFormProps) => {
             )}
           />
 
-          <DialogFooter>
-            <Button
-              type="submit"
-              variant="default"
-              className="cursor- w-full gap-2 rounded-lg"
-            >
-              {doctors ? (
-                <>
+          <DialogFooter className="flex gap-2">
+            {doctors ? (
+              <div className="grid w-full grid-cols-2 justify-between gap-2">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="cursor-pointer gap-2 rounded-lg"
+                    >
+                      {deleteDoctorAction.isPending ? (
+                        <Loader className="animate-spin" />
+                      ) : (
+                        <Trash2Icon />
+                      )}
+                      Deletar Médico
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="max-w-[300px]">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Tem certeza que deseja deletar este médico?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação não pode ser desfeita. Todos os dados
+                        relacionados a este médico serão permanentemente
+                        removidos.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive cursor-pointer text-white shadow-xs"
+                        onClick={() => handleDeleteDoctor(doctors.id)}
+                      >
+                        Continuar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                <Button
+                  type="submit"
+                  variant="default"
+                  className="ursor-pointer gap-2 rounded-lg"
+                >
                   {upsertDoctorAction.isPending ? (
                     <Loader className="animate-spin" />
                   ) : (
                     <CircleFadingArrowUp />
                   )}
                   Atualizar Médico
-                </>
-              ) : (
-                <>
-                  {upsertDoctorAction.isPending ? (
-                    <Loader className="animate-spin" />
-                  ) : (
-                    <PlusIcon />
-                  )}
-                  Registrar Médico
-                </>
-              )}
-            </Button>
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="submit"
+                variant="default"
+                className="cursor-pointer gap-2 rounded-lg"
+              >
+                {upsertDoctorAction.isPending ? (
+                  <Loader className="animate-spin" />
+                ) : (
+                  <PlusIcon />
+                )}
+                Registrar Médico
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </Form>
