@@ -17,11 +17,11 @@ import { useState } from "react";
 import UpsertDoctorsDialog from "./upsert-doctors-form";
 
 interface DoctorCardProps {
-  doctor: typeof doctorsTable.$inferSelect;
+  doctors: typeof doctorsTable.$inferSelect;
 }
 
-const DoctorCard = ({ doctor }: DoctorCardProps) => {
-  const initials = doctor.name
+const DoctorCard = ({ doctors }: DoctorCardProps) => {
+  const initials = doctors.name
     .split(" ")
     .map((name) => name.charAt(0))
     .join("")
@@ -56,9 +56,9 @@ const DoctorCard = ({ doctor }: DoctorCardProps) => {
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="text-sm font-medium">{doctor.name}</h3>
+            <h3 className="text-sm font-medium capitalize">{doctors.name}</h3>
             <p className="text-muted-foreground text-sm">
-              {doctor.specialty || "Specialty not specified"}
+              {doctors.specialty || "Specialty not specified"}
             </p>
           </div>
         </div>
@@ -67,16 +67,16 @@ const DoctorCard = ({ doctor }: DoctorCardProps) => {
       <CardContent className="flex flex-col gap-2">
         <Badge variant="outline" className="mr-1">
           <CalendarDaysIcon />
-          {getWeekdayName(doctor.availableFromWeekDays)} -{" "}
-          {getWeekdayName(doctor.availableToWeekDays)}
+          {getWeekdayName(doctors.availableFromWeekDays)} -{" "}
+          {getWeekdayName(doctors.availableToWeekDays)}
         </Badge>
         <Badge variant="outline" className="mr-1">
           <ClockIcon />
-          Das {getHours(doctor.availableFromTime)} ás{" "}
-          {getHours(doctor.availableToTime)}
+          Das {getHours(doctors.availableFromTime)} ás{" "}
+          {getHours(doctors.availableToTime)}
         </Badge>
         <Badge variant="outline" className="mr-1">
-          <DollarSignIcon /> R$ {(doctor.appointmentsInCents / 100).toFixed(2)}
+          <DollarSignIcon /> R$ {(doctors.appointmentsInCents / 100).toFixed(2)}
         </Badge>
       </CardContent>
       <Separator className="my-2" />
@@ -88,7 +88,10 @@ const DoctorCard = ({ doctor }: DoctorCardProps) => {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <UpsertDoctorsDialog onSuccess={() => setIsOpen(false)} />
+            <UpsertDoctorsDialog
+              onSuccess={() => setIsOpen(false)}
+              doctors={doctors}
+            />
           </DialogContent>
         </Dialog>
       </CardFooter>

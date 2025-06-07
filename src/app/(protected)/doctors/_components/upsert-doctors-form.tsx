@@ -33,7 +33,8 @@ import { NumericFormat } from "react-number-format";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { upsertDoctor } from "@/_actions/upsert-doctors";
-import { Loader, PlusIcon } from "lucide-react";
+import { CircleFadingArrowUp, Loader, PlusIcon } from "lucide-react";
+import { doctorsTable } from "@/db/schema";
 
 const formSchema = z
   .object({
@@ -68,21 +69,22 @@ const formSchema = z
 
 interface upsertDoctorFormProps {
   onSuccess?: () => void;
+  doctors?: typeof doctorsTable.$inferSelect;
 }
 
 type FormSchema = z.infer<typeof formSchema>;
 
-const UpsertDoctorsDialog = ({ onSuccess }: upsertDoctorFormProps) => {
+const UpsertDoctorsDialog = ({ onSuccess, doctors }: upsertDoctorFormProps) => {
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      specialty: "",
-      availableFromWeekDays: 0,
-      availableToWeekDays: 0,
-      availableFromTime: "",
-      availableToTime: "",
-      appointmentPrice: 0,
+      name: doctors?.name || "",
+      specialty: doctors?.specialty || "",
+      availableFromWeekDays: doctors?.availableFromWeekDays || 0,
+      availableToWeekDays: doctors?.availableToWeekDays || 0,
+      availableFromTime: doctors?.availableFromTime || "",
+      availableToTime: doctors?.availableToTime || "",
+      appointmentPrice: (doctors?.appointmentsInCents ?? 0) / 100,
     },
   });
 
@@ -101,6 +103,7 @@ const UpsertDoctorsDialog = ({ onSuccess }: upsertDoctorFormProps) => {
   async function onSubmit(data: FormSchema) {
     upsertDoctorAction.execute({
       ...data,
+      id: doctors?.id, // If updating, pass the existing doctor's ID
       availableFromWeekDays: data.availableFromWeekDays.toString(),
       availableToWeekDays: data.availableToWeekDays.toString(),
       appointmentPriceInCents: data.appointmentPrice * 100,
@@ -110,10 +113,13 @@ const UpsertDoctorsDialog = ({ onSuccess }: upsertDoctorFormProps) => {
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Registrar Médicos</DialogTitle>
+        <DialogTitle>
+          {doctors ? doctors.name : "Registrar Médicos"}
+        </DialogTitle>
         <DialogDescription>
-          Insira as informações do profissional que deseja vincular a sua
-          clínica.
+          {doctors
+            ? "Atualizar as informações do médico."
+            : "Preencha os dados do médico para registro."}
         </DialogDescription>
       </DialogHeader>
 
@@ -405,12 +411,25 @@ const UpsertDoctorsDialog = ({ onSuccess }: upsertDoctorFormProps) => {
               variant="default"
               className="cursor- w-full gap-2 rounded-lg"
             >
-              {upsertDoctorAction.isPending ? (
-                <Loader className="animate-spin" />
+              {doctors ? (
+                <>
+                  {upsertDoctorAction.isPending ? (
+                    <Loader className="animate-spin" />
+                  ) : (
+                    <CircleFadingArrowUp />
+                  )}
+                  Atualizar Médico
+                </>
               ) : (
-                <PlusIcon />
+                <>
+                  {upsertDoctorAction.isPending ? (
+                    <Loader className="animate-spin" />
+                  ) : (
+                    <PlusIcon />
+                  )}
+                  Registrar Médico
+                </>
               )}
-              Registrar Médico
             </Button>
           </DialogFooter>
         </form>
