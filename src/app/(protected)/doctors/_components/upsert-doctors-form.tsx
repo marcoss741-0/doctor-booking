@@ -76,6 +76,7 @@ type FormSchema = z.infer<typeof formSchema>;
 
 const UpsertDoctorsDialog = ({ onSuccess, doctors }: upsertDoctorFormProps) => {
   const form = useForm<FormSchema>({
+    shouldUnregister: true,
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: doctors?.name || "",
